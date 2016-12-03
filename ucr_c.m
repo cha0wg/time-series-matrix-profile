@@ -16,9 +16,21 @@ for i=1:len
     B{i}=TRAIN(index,:);
 end
 
-diffMatrix=[];
+%% init diffMatrix
+
+numRow=0;
+for i=1:len-1
+    for j=i+1:len
+        numRow=numRow+size(B{i},1)*size(B{j},1);
+    end
+end
+
+datalen=size(B{1},2)-1;
+diffMatrix=zeros(numRow,datalen - subLen + 1);
 
 
+%%
+index=1;
 for i=1:len-1  % find group
     for j=2:len  % find second group
         for firstIndex=1:size(B{i},1) %data len in 1 group
@@ -28,19 +40,19 @@ for i=1:len-1  % find group
                  data1=B{j}(secondIndex,2:size(B{j},2));
                  [matrixProfile] = V_interactiveMatrixProfile(data,data1, subLen);
                  posDiffMatrixProfile=abs(matrixProfile-matrixProfileSelf);
-                 diffMatrix=[diffMatrix;posDiffMatrixProfile.'];
+                 diffMatrix(index,:)=posDiffMatrixProfile.';
+                 index=index+1;
             end
         end
     end
 end
 
 %%
-subLen=25;
 data1=TRAIN(1,2:287);
-data18=TRAIN(20,2:287);
+data15=TRAIN(15,2:287);
 
 
-[matrixProfile] = V_interactiveMatrixProfile(data1,data18, subLen);
+[matrixProfile] = V_interactiveMatrixProfile(data1,data15, subLen);
 
 
 [matrixProfileSelf] =  V_interactiveMatrixProfile(data1,data1, subLen);
@@ -56,7 +68,7 @@ figure
 subplot(4,1,1)
 hold on
 plot(1:dataLen, data1, 'r');
-plot(1:dataLen, data18, 'b');
+plot(1:dataLen, data15, 'b');
 
 subplot(4,1,2)
 hold on
