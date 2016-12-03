@@ -23,7 +23,7 @@
 % Joins for Time Series," ICDM 2016, http://www.cs.ucr.edu/~eamonn/MatrixProfile.html
 %
 
-function [matrixProfile, profileIndex] = ...
+function [matrixProfile] = ...
     V_interactiveMatrixProfile(data,data1, subLen)
 %% set trivial match exclusion zone
 exclusionZone = round(subLen/2);
@@ -115,20 +115,20 @@ set(mainWindow.profileAx,'ylim',[0, 2*sqrt(subLen)]);
 
 
 %% plot data
-dataPlot = zeroOneNorm(data);
-hold(mainWindow.dataAx, 'on');
-plot(1:dataLen, dataPlot, 'r', 'parent', mainWindow.dataAx);
-hold(mainWindow.dataAx, 'off');
-
-dataPlot1 = zeroOneNorm(data1);
-hold(mainWindow.data1Ax, 'on');
-plot(1:dataLen1, dataPlot1, 'b', 'parent', mainWindow.data1Ax);
-hold(mainWindow.data1Ax, 'off');
-
-hold(mainWindow.dataMx, 'on');
-plot(1:dataLen, dataPlot, 'r', 'parent', mainWindow.dataMx);
-plot(1:dataLen1, dataPlot1, 'b', 'parent', mainWindow.dataMx);
-hold(mainWindow.dataMx, 'off');
+% dataPlot = zeroOneNorm(data);
+% hold(mainWindow.dataAx, 'on');
+% plot(1:dataLen, dataPlot, 'r', 'parent', mainWindow.dataAx);
+% hold(mainWindow.dataAx, 'off');
+% 
+% dataPlot1 = zeroOneNorm(data1);
+% hold(mainWindow.data1Ax, 'on');
+% plot(1:dataLen1, dataPlot1, 'b', 'parent', mainWindow.data1Ax);
+% hold(mainWindow.data1Ax, 'off');
+% 
+% hold(mainWindow.dataMx, 'on');
+% plot(1:dataLen, dataPlot, 'r', 'parent', mainWindow.dataMx);
+% plot(1:dataLen1, dataPlot1, 'b', 'parent', mainWindow.dataMx);
+% hold(mainWindow.dataMx, 'off');
 
 %% locate nan and inf
 profileLen = dataLen - subLen + 1;
@@ -158,8 +158,8 @@ profileIndex = zeros(profileLen, 1);
 mainWindow.stopping = false;
 mainWindow.discardIdx = [];
 set(mainWindow.fig, 'userdata', mainWindow);
-firstUpdate = true;
-timer = tic();
+%firstUpdate = true;
+%timer = tic();
 for i = 1:profileLen
     % compute the distance profile
     idx = idxOrder(i);
@@ -198,76 +198,76 @@ for i = 1:profileLen
     [matrixProfile(idx), profileIndex(idx)] = min(distanceProfile);
     
     % plotting
-    if toc(timer) > 1 || i == profileLen
-        % plot matrix profile
-        if exist('prefilePlot', 'var')
-            delete(prefilePlot);
-        end
-        hold(mainWindow.profileAx, 'on');
-        prefilePlot = plot(1:profileLen, matrixProfile, 'b', 'parent', mainWindow.profileAx);
-        hold(mainWindow.profileAx, 'off');
+%     if toc(timer) > 1 || i == profileLen
+%         % plot matrix profile
+%         if exist('prefilePlot', 'var')
+%             delete(prefilePlot);
+%         end
+%         hold(mainWindow.profileAx, 'on');
+%         prefilePlot = plot(1:profileLen, matrixProfile, 'b', 'parent', mainWindow.profileAx);
+%         hold(mainWindow.profileAx, 'off');
         
         % remove motif
-        if exist('motifDataPlot', 'var')
-            for j = 1:2
-                delete(motifDataPlot(j));
-            end
-        end
-        if exist('discordPlot', 'var')
-            for j = 1:length(discordPlot)
-                delete(discordPlot(j));
-            end
-        end
-        if exist('motifMotifPlot', 'var')
-            for j = 1:3
-                for k = 1:2
-                    for l = 1:length(motifMotifPlot{j, k})
-                        delete(motifMotifPlot{j, k}(l));
-                    end
-                end
-            end
-        end
+%         if exist('motifDataPlot', 'var')
+%             for j = 1:2
+%                 delete(motifDataPlot(j));
+%             end
+% %         end
+%         if exist('discordPlot', 'var')
+%             for j = 1:length(discordPlot)
+%                 delete(discordPlot(j));
+%             end
+% %         end
+%         if exist('motifMotifPlot', 'var')
+%             for j = 1:3
+%                 for k = 1:2
+%                     for l = 1:length(motifMotifPlot{j, k})
+%                         delete(motifMotifPlot{j, k}(l));
+%                     end
+%                 end
+%             end
+%         end
         
         % apply discard
-        mainWindow = get(mainWindow.fig, 'userdata');
-        discardIdx = mainWindow.discardIdx;
-        matrixProfileTemp = matrixProfile;
-        for j = 1:length(discardIdx)
-            discardZoneStart = max(1, discardIdx(j)-exclusionZone);
-            discardZoneEnd = min(profileLen, discardIdx(j)+exclusionZone);
-            matrixProfileTemp(discardZoneStart:discardZoneEnd) = inf;
-            matrixProfileTemp(abs(profileIndex - discardIdx(j)) < exclusionZone) = inf;
-        end
+%         mainWindow = get(mainWindow.fig, 'userdata');
+%         discardIdx = mainWindow.discardIdx;
+%         matrixProfileTemp = matrixProfile;
+%         for j = 1:length(discardIdx)
+%             discardZoneStart = max(1, discardIdx(j)-exclusionZone);
+%             discardZoneEnd = min(profileLen, discardIdx(j)+exclusionZone);
+%             matrixProfileTemp(discardZoneStart:discardZoneEnd) = inf;
+%             matrixProfileTemp(abs(profileIndex - discardIdx(j)) < exclusionZone) = inf;
+%         end
              
         % update process
-        set(mainWindow.dataText, 'string', ...
-            sprintf('We are %.1f%% done: The input time series: The best-so-far motifs are color coded (see bottom panel)', i*100/profileLen));
-%         set(mainWindow.discordText, 'string', ...
-%             sprintf('The top three discords %d(blue), %d(red), %d(green)', discordIdx(1), discordIdx(2), discordIdx(3)));
-        
-        % show the figure
-        if firstUpdate
-            set(mainWindow.fig, 'userdata', mainWindow);
-            set(mainWindow.fig, 'visible', 'on');
-            firstUpdate = false;
-        end
+%         set(mainWindow.dataText, 'string', ...
+%             sprintf('We are %.1f%% done: The input time series: The best-so-far motifs are color coded (see bottom panel)', i*100/profileLen));
+% %         set(mainWindow.discordText, 'string', ...
+% %             sprintf('The top three discords %d(blue), %d(red), %d(green)', discordIdx(1), discordIdx(2), discordIdx(3)));
+%         
+%         % show the figure
+%         if firstUpdate
+%             set(mainWindow.fig, 'userdata', mainWindow);
+%             set(mainWindow.fig, 'visible', 'on');
+%             firstUpdate = false;
+%         end
         
         % check for stop
-        mainWindow = get(mainWindow.fig, 'userdata');
-        %mainWindow.motifIdxs = motifIdxs;
-        set(mainWindow.fig, 'userdata', mainWindow);
-        if mainWindow.stopping
-            set(mainWindow.fig, 'name', 'UCR Interactive Matrix Profile Calculation (Stopped)');
-            return;
-        end
-        if i == profileLen
-            set(mainWindow.fig, 'name', 'UCR Interactive Matrix Profile Calculation (Completed)');
-            return;
-        end
+%         mainWindow = get(mainWindow.fig, 'userdata');
+%         %mainWindow.motifIdxs = motifIdxs;
+%         set(mainWindow.fig, 'userdata', mainWindow);
+%         if mainWindow.stopping
+%             set(mainWindow.fig, 'name', 'UCR Interactive Matrix Profile Calculation (Stopped)');
+%             return;
+%         end
+%         if i == profileLen
+%             set(mainWindow.fig, 'name', 'UCR Interactive Matrix Profile Calculation (Completed)');
+%             return;
+%         end
         
-        pause(0.01);
-        timer = tic();
-    end
+       % pause(0.01);
+       % timer = tic();
+    %end
 end
 
 
