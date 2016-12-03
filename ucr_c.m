@@ -1,25 +1,52 @@
 TRAIN = load('UEA_data/Coffee/Coffee_TRAIN'); 
 TEST= load('UEA_data/Coffee/Coffee_TEST');
-data1=TRAIN(1,2:287);
-data2=TRAIN(28,2:287);
-data3=TRAIN(8,2:287);
-data18=TRAIN(18,2:287);
-data25=TRAIN(21,2:287);
 
-
-x=1:286;
-plot(x,data1,'-b',x,data2,'-y',x,data3,'-r',x,data18,'-k',x,data25,'-g');
+TRAIN=sortrows(TRAIN,1);
 
 
 %%
-
 subLen=25;
-[matrixProfile, profileIndex] = V_interactiveMatrixProfile(data1,data18, subLen);
+
+
+numcls=unique(TRAIN(:,1));
+len=length(numcls);
+B=cell(len,1);
+for i=1:len
+    index=(TRAIN(:,1)==numcls(i));
+    B{i}=TRAIN(index,:);
+end
+
+diffMatrix=[];
+
+
+for i=1:len-1  % find group
+    for j=2:len  % find second group
+        for firstIndex=1:size(B{i},1) %data len in 1 group
+              data=B{i}(firstIndex,2:size(B{i},2));
+              [matrixProfileSelf] = V_interactiveMatrixProfile(data,data, subLen);
+            for secondIndex=1:size(B{j},1)  %data len in 2 group
+                 data1=B{j}(secondIndex,2:size(B{j},2));
+                 [matrixProfile] = V_interactiveMatrixProfile(data,data1, subLen);
+                 posDiffMatrixProfile=abs(matrixProfile-matrixProfileSelf);
+                 diffMatrix=[diffMatrix;posDiffMatrixProfile.'];
+            end
+        end
+    end
+end
 
 %%
-[matrixProfileSelf, profileIndexSelf] =  V_interactiveMatrixProfile(data1,data1, subLen);
+subLen=25;
+data1=TRAIN(1,2:287);
+data18=TRAIN(20,2:287);
+
+
+[matrixProfile] = V_interactiveMatrixProfile(data1,data18, subLen);
+
+
+[matrixProfileSelf] =  V_interactiveMatrixProfile(data1,data1, subLen);
+
 %%
-%plot minus
+%plot minus information
 diffMatrixProfile=matrixProfile-matrixProfileSelf;
 posDiffMatrixProfile=abs(diffMatrixProfile);
 dataLen = length(data1);
