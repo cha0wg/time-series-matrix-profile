@@ -30,6 +30,8 @@ diffMatrix=zeros(numRow,datalen - subLen + 1);
 
 
 %%
+tic
+
 index=1;
 for i=1:len-1  % find group
     for j=2:len  % find second group
@@ -47,9 +49,14 @@ for i=1:len-1  % find group
     end
 end
 
-%%
+toc
+%% plot test
+figure
+plot(diffMatrix(1,:));
+
+%% 
 data1=TRAIN(1,2:287);
-data15=TRAIN(15,2:287);
+data15=TRAIN(15,2:287); 
 
 
 [matrixProfile] = V_interactiveMatrixProfile(data1,data15, subLen);
@@ -58,7 +65,7 @@ data15=TRAIN(15,2:287);
 [matrixProfileSelf] =  V_interactiveMatrixProfile(data1,data1, subLen);
 
 %%
-%plot minus information
+%plot minus information 
 diffMatrixProfile=matrixProfile-matrixProfileSelf;
 posDiffMatrixProfile=abs(diffMatrixProfile);
 dataLen = length(data1);
