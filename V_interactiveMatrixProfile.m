@@ -28,7 +28,7 @@ function [matrixProfile] = ...
 %% set trivial match exclusion zone
 exclusionZone = round(subLen/2);
 % exclusionZone = round(subLen/4);
-radius = 2;
+% radius = 2;
 
 %% check input
 dataLen = length(data);
@@ -56,79 +56,7 @@ if dataLen1 == size(data1, 2)
     data1 = data1';
 end
 
-%% spawn main window
-mainWindow.fig = figure('name', 'UCR Interactive Matrix Profile Calculation', ...
-    'visible', 'off', 'toolbar', 'none', 'ResizeFcn', @mainResize);
 
-%% add UI element into the window
-backColor = get(mainWindow.fig, 'color');
-mainWindow.dataAx = axes('parent',mainWindow.fig, 'units', 'pixels');
-mainWindow.data1Ax = axes('parent',mainWindow.fig, 'units', 'pixels');
-
-mainWindow.profileAx = axes('parent',mainWindow.fig, 'units', 'pixels');
-mainWindow.dataMx = axes('parent',mainWindow.fig, 'units', 'pixels');
-%mainWindow.profileSelfAx = axes('parent',mainWindow.fig, 'units', 'pixels');
-%mainWindow.minusProfileAx = axes('parent',mainWindow.fig, 'units', 'pixels');
-
-
-
-mainWindow.dataText = uicontrol('parent',mainWindow.fig, 'style', 'text',...
-    'string', '', 'fontsize', 10, 'backgroundcolor', backColor, ...
-    'horizontalalignment', 'left');
-mainWindow.profileText = uicontrol('parent',mainWindow.fig, 'style', 'text',...
-    'string', 'The best-so-far matrix profile', 'fontsize', 10, ...
-    'backgroundcolor', backColor,'horizontalalignment', 'left');
-
-mainWindow.data1Text = uicontrol('parent',mainWindow.fig, 'style', 'text',...
-    'string', 'Second data time string', 'fontsize', 10, ...
-    'backgroundcolor', backColor,'horizontalalignment', 'left');
-
-% mainWindow.data1Text = uicontrol('parent',mainWindow.fig, 'style', 'text',...
-%     'string', '', 'fontsize', 10, 'backgroundcolor', backColor, ...
-%     'horizontalalignment', 'left');
-
-mainWindow.mixText = uicontrol('parent',mainWindow.fig, 'style', 'text',...
-    'string', 'Diff between data and data1', 'fontsize', 10, ...
-    'backgroundcolor', backColor,'horizontalalignment', 'left');
-
-
-%% modify the properties of the axis
-set(mainWindow.dataAx,'xlim',[1, dataLen]);
-set(mainWindow.dataAx,'ylim',[-0.05, 1.05]);
-set(mainWindow.dataAx,'ytick',[]);
-set(mainWindow.dataAx,'ycolor',[1 1 1]);
-
-set(mainWindow.data1Ax,'xlim',[1, dataLen1]);
-set(mainWindow.data1Ax,'ylim',[-0.05, 1.05]);
-set(mainWindow.data1Ax,'ytick',[]);
-set(mainWindow.data1Ax,'ycolor',[1 1 1]);
-
-set(mainWindow.dataMx,'xlim',[1, dataLen1]);
-set(mainWindow.dataMx,'ylim',[-0.05, 1.05]);
-set(mainWindow.dataMx,'ytick',[]);
-set(mainWindow.dataMx,'ycolor',[1 1 1]);
-
-
-set(mainWindow.profileAx,'xlim',[1, dataLen]);
-set(mainWindow.profileAx,'ylim',[0, 2*sqrt(subLen)]);
-
-
-
-%% plot data
-% dataPlot = zeroOneNorm(data);
-% hold(mainWindow.dataAx, 'on');
-% plot(1:dataLen, dataPlot, 'r', 'parent', mainWindow.dataAx);
-% hold(mainWindow.dataAx, 'off');
-% 
-% dataPlot1 = zeroOneNorm(data1);
-% hold(mainWindow.data1Ax, 'on');
-% plot(1:dataLen1, dataPlot1, 'b', 'parent', mainWindow.data1Ax);
-% hold(mainWindow.data1Ax, 'off');
-% 
-% hold(mainWindow.dataMx, 'on');
-% plot(1:dataLen, dataPlot, 'r', 'parent', mainWindow.dataMx);
-% plot(1:dataLen1, dataPlot1, 'b', 'parent', mainWindow.dataMx);
-% hold(mainWindow.dataMx, 'off');
 
 %% locate nan and inf
 profileLen = dataLen - subLen + 1;
@@ -155,11 +83,7 @@ matrixProfile = inf(profileLen, 1);
 profileIndex = zeros(profileLen, 1);
 
 %% iteratively plot
-mainWindow.stopping = false;
-mainWindow.discardIdx = [];
-set(mainWindow.fig, 'userdata', mainWindow);
-%firstUpdate = true;
-%timer = tic();
+
 for i = 1:profileLen
     % compute the distance profile
     idx = idxOrder(i);
@@ -196,78 +120,7 @@ for i = 1:profileLen
         matrixProfile(updatePos) = distanceProfile(updatePos);
     end
     [matrixProfile(idx), profileIndex(idx)] = min(distanceProfile);
-    
-    % plotting
-%     if toc(timer) > 1 || i == profileLen
-%         % plot matrix profile
-%         if exist('prefilePlot', 'var')
-%             delete(prefilePlot);
-%         end
-%         hold(mainWindow.profileAx, 'on');
-%         prefilePlot = plot(1:profileLen, matrixProfile, 'b', 'parent', mainWindow.profileAx);
-%         hold(mainWindow.profileAx, 'off');
-        
-        % remove motif
-%         if exist('motifDataPlot', 'var')
-%             for j = 1:2
-%                 delete(motifDataPlot(j));
-%             end
-% %         end
-%         if exist('discordPlot', 'var')
-%             for j = 1:length(discordPlot)
-%                 delete(discordPlot(j));
-%             end
-% %         end
-%         if exist('motifMotifPlot', 'var')
-%             for j = 1:3
-%                 for k = 1:2
-%                     for l = 1:length(motifMotifPlot{j, k})
-%                         delete(motifMotifPlot{j, k}(l));
-%                     end
-%                 end
-%             end
-%         end
-        
-        % apply discard
-%         mainWindow = get(mainWindow.fig, 'userdata');
-%         discardIdx = mainWindow.discardIdx;
-%         matrixProfileTemp = matrixProfile;
-%         for j = 1:length(discardIdx)
-%             discardZoneStart = max(1, discardIdx(j)-exclusionZone);
-%             discardZoneEnd = min(profileLen, discardIdx(j)+exclusionZone);
-%             matrixProfileTemp(discardZoneStart:discardZoneEnd) = inf;
-%             matrixProfileTemp(abs(profileIndex - discardIdx(j)) < exclusionZone) = inf;
-%         end
-             
-        % update process
-%         set(mainWindow.dataText, 'string', ...
-%             sprintf('We are %.1f%% done: The input time series: The best-so-far motifs are color coded (see bottom panel)', i*100/profileLen));
-% %         set(mainWindow.discordText, 'string', ...
-% %             sprintf('The top three discords %d(blue), %d(red), %d(green)', discordIdx(1), discordIdx(2), discordIdx(3)));
-%         
-%         % show the figure
-%         if firstUpdate
-%             set(mainWindow.fig, 'userdata', mainWindow);
-%             set(mainWindow.fig, 'visible', 'on');
-%             firstUpdate = false;
-%         end
-        
-        % check for stop
-%         mainWindow = get(mainWindow.fig, 'userdata');
-%         %mainWindow.motifIdxs = motifIdxs;
-%         set(mainWindow.fig, 'userdata', mainWindow);
-%         if mainWindow.stopping
-%             set(mainWindow.fig, 'name', 'UCR Interactive Matrix Profile Calculation (Stopped)');
-%             return;
-%         end
-%         if i == profileLen
-%             set(mainWindow.fig, 'name', 'UCR Interactive Matrix Profile Calculation (Completed)');
-%             return;
-%         end
-        
-       % pause(0.01);
-       % timer = tic();
-    %end
+   
 end
 
 
@@ -302,22 +155,3 @@ distanceProfile = (data2Sum - 2*dataSum.*dataMean + subLen*(dataMean.^2))./data2
     - 2*(dataQueryProd(subLen:dataLen) - querySum.*dataMean)./dataSig + query2Sum;
 distanceProfile = sqrt(distanceProfile);
 
-function x = zeroOneNorm(x)
-x = x-min(x(~isinf(x) & ~isnan(x)));
-x = x/max(x(~isinf(x) & ~isnan(x)));
-
-function mainResize(src, ~)
-mainWindow = get(src, 'userdata');
-figPosition = get(mainWindow.fig, 'position');
-axGap = 38;
-axesHeight = round((figPosition(4)-axGap*5-60)/4);
-
-set(mainWindow.dataAx, 'position', [30, 3*axesHeight+3*axGap+30, figPosition(3)-160, axesHeight]);
-set(mainWindow.data1Ax, 'position', [30, 2*axesHeight+2*axGap+30, figPosition(3)-160, axesHeight]);
-set(mainWindow.dataMx, 'position', [30, 1*axesHeight+1*axGap+30, figPosition(3)-160, axesHeight]);
-set(mainWindow.profileAx, 'position', [30, 30, figPosition(3)-160, axesHeight]);
-
-set(mainWindow.dataText, 'position', [30, 4*axesHeight+3*axGap+30, figPosition(3)-160, 18]);
-set(mainWindow.data1Text, 'position', [30, 3*axesHeight+2*axGap+30, figPosition(3)-160, 18]);
-set(mainWindow.mixText, 'position', [30, 2*axesHeight+1*axGap+30, figPosition(3)-160, 18]);
-set(mainWindow.profileText, 'position', [30, 1*axesHeight+30, figPosition(3)-160, 18]);
