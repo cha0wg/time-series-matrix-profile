@@ -1,12 +1,12 @@
-TRAIN = load('UEA_data/Coffee/Coffee_TRAIN'); 
-TEST= load('UEA_data/Coffee/Coffee_TEST');
+TRAIN = load('Coffee_TRAIN'); 
+TEST= load('Coffee_TEST');
 
 TRAIN=sortrows(TRAIN,1);
 
 
 %%
 subLen=25;
-
+threshold=0.5;
 
 numcls=unique(TRAIN(:,1));
 len=length(numcls);
@@ -69,7 +69,7 @@ end
 
 toc
 %% generate shapelet
-threshold=0.5;
+% threshold=0.5;
 %[m,n]=find(sss>threshold);
 
 index_Class_Instance=cell(len-1,1);
@@ -110,7 +110,18 @@ end
 
 shapelet=cell(slen,1);
 
-
+index=1;
+for i=1:size(index_Class_Instance,1)
+    tclass=TRAIN(:,1)==i-1;
+    tins = TRAIN(tclass,:);
+    tins=tins(:,2:size(tins,2));
+    for j=1:size(index_Class_Instance{i},1)      
+        for x=1:length(index_Class_Instance{i}{j})
+            shapelet{index}=tins(j,index_Class_Instance{i}{j}(x):index_Class_Instance{i}{j}(x)+subLen-1);
+            index=index+1;
+        end
+    end
+end
 
 % dl=size(index_Class_Instance,1);
 % for i=1:dl
