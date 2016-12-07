@@ -1,5 +1,5 @@
-TRAIN = load('Coffee_TRAIN'); 
-TEST= load('Coffee_TEST');
+TRAIN = load('UEA_data/Coffee/Coffee_TRAIN'); 
+TEST= load('UEA_data/Coffee/Coffee_TEST');
 
 TRAIN=sortrows(TRAIN,1);
 
@@ -72,43 +72,62 @@ toc
 threshold=0.5;
 %[m,n]=find(sss>threshold);
 
-slen=0;
-for i=1:len-1
-    slen=slen+size(B{i},1);
-end
-shapelet=cell(slen,1);
-
-
 index_Class_Instance=cell(len-1,1);
 for i=1:len-1
     index_Class_Instance{i}=cell(size(B{i},1),1);
 end
 
-index=1;
-dl= size(diffMatrix,1);
-for i=1:dl
-    temps=find(diffMatrix(i,3:size(diffMatrix,2))>threshold);
-    index_Class_Instance{diffMatrix(i,1)+1}{diffMatrix(i,2)}=...
-    [index_Class_Instance{diffMatrix(i,1)+1}{diffMatrix(i,2)} temps];
-end
+% index=1;
+% dl= size(diffMatrix,1);
+% for i=1:dl
+%     temps=find(diffMatrix(i,3:size(diffMatrix,2))>threshold);
+%     index_Class_Instance{diffMatrix(i,1)+1}{diffMatrix(i,2)}=...
+%     [index_Class_Instance{diffMatrix(i,1)+1}{diffMatrix(i,2)} temps];
+% end
 
-dl=size(index_Class_Instance,1);
-for i=1:dl
+
+for i=1:size(index_Class_Instance,1)
     for j=1:size(index_Class_Instance{i},1)
-        index_Class_Instance{i}{j}=unique(index_Class_Instance{i}{j});
+         class=diffMatrix(:,1)==i-1;
+         instance = diffMatrix(class,:);
+         cii=instance(:,2)==j;
+         pcim=instance(cii,:);
+         cim=pcim(:,3:size(pcim,2));
+         insnum=size(cim,1);
+         cim=sum(cim);
+         cim=cim/insnum;
+         m=find(cim>threshold);
+         index_Class_Instance{i}{j}=m;
     end
 end
 
+slen=0;
+for i=1:size(index_Class_Instance,1)
+    for j=1:size(index_Class_Instance{i},1)
+        slen=slen+length(index_Class_Instance{i}{j});
+    end
+end
+
+shapelet=cell(slen,1);
+
+
+
+% dl=size(index_Class_Instance,1);
+% for i=1:dl
+%     for j=1:size(index_Class_Instance{i},1)
+%         index_Class_Instance{i}{j}=unique(index_Class_Instance{i}{j});
+%     end
+% end
 %% use z-normalized euclidean distance to transform the data
 
 
 %% plot test
-plotDiffMatrix(sss);
+plotDiffMatrix(cim);
 
 %% 
 tic
 data1=TRAIN(3,2:287);
-data15=TRAIN(4,2:287); 
+data15=TRAIN(18,2:287); 
 
 
 [matrixProfile] = V_interactiveMatrixProfile(data1,data15, subLen);
