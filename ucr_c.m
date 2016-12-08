@@ -1,5 +1,5 @@
-TRAIN = load('Coffee_TRAIN'); 
-TEST= load('Coffee_TEST');
+TRAIN = load('UEA_data/Coffee/Coffee_TRAIN'); 
+TEST= load('UEA_data/Coffee/Coffee_TEST');
 
 TRAIN=sortrows(TRAIN,1);
 
@@ -109,6 +109,7 @@ for i=1:size(index_Class_Instance,1)
 end
 
 shapelet=cell(slen,1);
+sindex=zeros(slen,1);
 
 index=1;
 for i=1:size(index_Class_Instance,1)
@@ -118,6 +119,7 @@ for i=1:size(index_Class_Instance,1)
     for j=1:size(index_Class_Instance{i},1)      
         for x=1:length(index_Class_Instance{i}{j})
             shapelet{index}=tins(j,index_Class_Instance{i}{j}(x):index_Class_Instance{i}{j}(x)+subLen-1);
+            sindex(index)=index_Class_Instance{i}{j}(x);
             index=index+1;
         end
     end
@@ -130,6 +132,15 @@ end
 %     end
 % end
 %% use z-normalized euclidean distance to transform the data
+D_tr=zeros(size(TRAIN,1),slen);
+
+for i=1:size(TRAIN,1)
+    for j=1:slen
+           D_tr(i,j)=
+    end
+end
+
+
 
 
 %% plot test
