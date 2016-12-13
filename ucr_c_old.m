@@ -4,9 +4,22 @@ TEST= load('UEA_data/Coffee/Coffee_TEST');
 TRAIN=sortrows(TRAIN,1);
 TEST=sortrows(TEST,1);
 
+%% set class from 0
+if TRAIN(1,1)==1
+    for i=1:size(TRAIN,1)
+        TRAIN(i,1)=TRAIN(i,1)-1;
+    end
+end
+
+if TEST(1,1)==1
+    for i=1:size(TEST,1)
+        TEST(i,1)=TEST(i,1)-1;
+    end
+end
+
 %%
-subLen=25;
-threshold=0.5;
+subLen=10;
+threshold=2;
 
 numcls=unique(TRAIN(:,1));
 len=length(numcls);
@@ -161,9 +174,10 @@ SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 0 -c 100');
 plotDiffMatrix(cim);
 
 %% 
+subLen=25;
 tic
-data1=TRAIN(3,2:287);
-data15=TRAIN(18,2:287); 
+data1=TRAIN(3,2:size(TRAIN,2));
+data15=TRAIN(242,2:size(TRAIN,2)); 
 
 
 [matrixProfile] = V_interactiveMatrixProfile(data1,data15, subLen);
@@ -174,6 +188,7 @@ toc
 
 %%
 %plot minus information 
+
 diffMatrixProfile=matrixProfile-matrixProfileSelf;
 posDiffMatrixProfile=abs(diffMatrixProfile);
 dataLen = length(data1);
@@ -198,7 +213,8 @@ plot(1:profileLen, posDiffMatrixProfile, 'b');
 %% plot train
 figure
 hold on
-l = length(TRAIN(1,2:287));
-plot(1:l, TRAIN(1,2:287), 'r');
-plot(1:l, TRAIN(3,2:287), 'm');
-plot(1:l, TRAIN(24,2:287), 'b');
+
+l = length(TRAIN(1,2:size(TRAIN,2)));
+plot(1:l, TRAIN(1,2:l+1), 'r');
+plot(1:l, TRAIN(152,2:l+1), 'm');
+plot(1:l, TRAIN(245,2:l+1), 'b');

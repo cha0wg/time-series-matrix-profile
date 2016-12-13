@@ -4,6 +4,18 @@ TEST= load('UEA_data/Coffee/Coffee_TEST');
 TRAIN=sortrows(TRAIN,1);
 TEST=sortrows(TEST,1);
 
+%% set class from 0
+if TRAIN(1,1)==1
+    for i=1:size(TRAIN,1)
+        TRAIN(i,1)=TRAIN(i,1)-1;
+    end
+end
+
+if TEST(1,1)==1
+    for i=1:size(TEST,1)
+        TEST(i,1)=TEST(i,1)-1;
+    end
+end
 %%
 subLen=25;
 threshold=0.5;
