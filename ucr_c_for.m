@@ -2,8 +2,8 @@
 TRAIN=sortrows(TRAIN,1);
 TEST=sortrows(TEST,1);
 
-subLen=5;
-threshold=0.5;
+subLen=8;
+threshold=0.9;
 
 %%set class from 0
 if TRAIN(1,1)==1
@@ -38,8 +38,11 @@ end
 datalen=size(B{1},2)-1;
 diffMatrix=zeros(numRow,datalen - subLen + 3);
 
-
+ rr=[];
 %%
+for mm_subLen=4:20
+    for mm_threshold=0.2:0.1:1.3
+diffMatrix=zeros(numRow,datalen - mm_subLen + 3);
 tic
 
 % index=1;
@@ -63,11 +66,11 @@ tic
 for i=1:len-1  % find group  
     for firstIndex=1:size(B{i},1) %data len in 1 group
          data=B{i}(firstIndex,2:size(B{i},2));
-         [matrixProfileSelf] = V_interactiveMatrixProfile(data,data, subLen);
+         [matrixProfileSelf] = V_interactiveMatrixProfile(data,data, mm_subLen);
          for j=i+1:len  % find second group
             for secondIndex=1:size(B{j},1)  %data len in 2 group
                  data1=B{j}(secondIndex,2:size(B{j},2));
-                 [matrixProfile] = V_interactiveMatrixProfile(data,data1, subLen);
+                 [matrixProfile] = V_interactiveMatrixProfile(data,data1, mm_subLen);
                  posDiffMatrixProfile=abs(matrixProfile-matrixProfileSelf);
                  tempProfile=[B{i}(firstIndex,1) firstIndex];
                  diffMatrix(index,:)=[tempProfile posDiffMatrixProfile.'];
@@ -79,7 +82,7 @@ end
 
 toc
 %% pre-generate shapelet
-  threshold=0.2;
+% threshold=0.5;
 %[m,n]=find(sss>threshold);
 
 index_Class_Instance=cell(len-1,1);
@@ -106,7 +109,7 @@ for i=1:size(index_Class_Instance,1)
          insnum=size(cim,1);
          cim=sum(cim);
          cim=cim/insnum;
-         m=find(cim>threshold);
+         m=find(cim>mm_threshold);
          index_Class_Instance{i}{j}=m;
     end
 end
@@ -121,14 +124,14 @@ for i=1:size(index_Class_Instance,1)
     for j=1:size(index_Class_Instance{i},1)
         temp=index_Class_Instance{i}{j};
         if length(temp)>0
-            r_len=[subLen];
+            r_len=[mm_subLen];
             r_d=[temp(1)];
             for x=2:size(temp,2)
                 if(temp(x)-temp(x-1)<=step)
                     r_len(size(r_len,2))=r_len(size(r_len,2))+temp(x)-temp(x-1);
                 else
                     r_d=[r_d temp(x)];
-                    r_len=[r_len subLen];
+                    r_len=[r_len mm_subLen];
                 end
             end
             index_Class_Instance_adj{i}{j}=r_d;
@@ -194,8 +197,22 @@ end
 TRAIN_class_labels=TRAIN(:,1);
 TEST_class_labels=TEST(:,1);
 %% svm classifier
-
-SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 1 -c 100');
+SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 0 -c 500');
  [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
  acc = accu(1);
+ 
+ SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 1 -c 500');
+ [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
+ acc1 = accu(1);
+ 
+ SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 2 -c 500');
+ [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
+ acc2 = accu(1);
+ 
+ SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 3 -c 500');
+ [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
+ acc3 = accu(1);
 
+ rr=[rr;[mm_subLen mm_threshold acc acc1 acc2 acc3]];
+    end
+end

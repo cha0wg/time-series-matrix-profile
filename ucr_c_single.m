@@ -1,9 +1,11 @@
 %% sort TRAIN and TEST by class
+subLen=10;
+threshold=0.6;
+
 TRAIN=sortrows(TRAIN,1);
 TEST=sortrows(TEST,1);
 
-subLen=5;
-threshold=0.5;
+
 
 %%set class from 0
 if TRAIN(1,1)==1
@@ -18,6 +20,8 @@ if TEST(1,1)==1
     end
 end
 %
+
+
 numcls=unique(TRAIN(:,1));
 len=length(numcls);
 B=cell(len,1);
@@ -38,8 +42,10 @@ end
 datalen=size(B{1},2)-1;
 diffMatrix=zeros(numRow,datalen - subLen + 3);
 
-
 %%
+
+
+
 tic
 
 % index=1;
@@ -78,8 +84,8 @@ for i=1:len-1  % find group
 end
 
 toc
-%% pre-generate shapelet
-  threshold=0.2;
+%% generate shapelet
+%   threshold=0.8;
 %[m,n]=find(sss>threshold);
 
 index_Class_Instance=cell(len-1,1);
@@ -111,42 +117,12 @@ for i=1:size(index_Class_Instance,1)
     end
 end
 
-%%index_Class_Instance adjust shape size
 
-index_Class_Instance_adj=index_Class_Instance;
-index_Class_Instance_length=index_Class_Instance;
-
-step=1;
+%
+slen=0;
 for i=1:size(index_Class_Instance,1)
     for j=1:size(index_Class_Instance{i},1)
-        temp=index_Class_Instance{i}{j};
-        if length(temp)>0
-            r_len=[subLen];
-            r_d=[temp(1)];
-            for x=2:size(temp,2)
-                if(temp(x)-temp(x-1)<=step)
-                    r_len(size(r_len,2))=r_len(size(r_len,2))+temp(x)-temp(x-1);
-                else
-                    r_d=[r_d temp(x)];
-                    r_len=[r_len subLen];
-                end
-            end
-            index_Class_Instance_adj{i}{j}=r_d;
-            index_Class_Instance_length{i}{j}=r_len;
-        else
-             index_Class_Instance_adj{i}{j}=temp;
-             index_Class_Instance_length{i}{j}=[];
-        end
-    end
-end
-
-
-%%generate shapelet
-
-slen=0;
-for i=1:size(index_Class_Instance_adj,1)
-    for j=1:size(index_Class_Instance_adj{i},1)
-        slen=slen+length(index_Class_Instance_adj{i}{j});
+        slen=slen+length(index_Class_Instance{i}{j});
     end
 end
 
@@ -154,14 +130,14 @@ shapelet=cell(slen,1);
 sindex=zeros(slen,1);
 
 index=1;
-for i=1:size(index_Class_Instance_adj,1)
+for i=1:size(index_Class_Instance,1)
     tclass=TRAIN(:,1)==i-1;
     tins = TRAIN(tclass,:);
     tins=tins(:,2:size(tins,2));
-    for j=1:size(index_Class_Instance_adj{i},1)      
-        for x=1:length(index_Class_Instance_adj{i}{j})
-            shapelet{index}=tins(j,index_Class_Instance_adj{i}{j}(x):index_Class_Instance_adj{i}{j}(x)+index_Class_Instance_length{i}{j}(x)-1);
-            sindex(index)=index_Class_Instance_adj{i}{j}(x);
+    for j=1:size(index_Class_Instance{i},1)      
+        for x=1:length(index_Class_Instance{i}{j})
+            shapelet{index}=tins(j,index_Class_Instance{i}{j}(x):index_Class_Instance{i}{j}(x)+subLen-1);
+            sindex(index)=index_Class_Instance{i}{j}(x);
             index=index+1;
         end
     end
@@ -180,14 +156,14 @@ D_ts=zeros(size(TEST,1),slen);
 for i=1:size(TRAIN,1)
     data=TRAIN(i,2:size(TRAIN,2));  
     for j=1:slen
-        D_tr(i,j)=norm(data(sindex(j):sindex(j)+ length(shapelet{j})-1)-shapelet{j});       
+        D_tr(i,j)=norm(data(sindex(j):sindex(j)+subLen-1)-shapelet{j});       
     end
 end
 
 for i=1:size(TEST,1)
     data=TEST(i,2:size(TEST,2));  
     for j=1:slen
-        D_ts(i,j)=norm(data(sindex(j):sindex(j)+ length(shapelet{j})-1)-shapelet{j});       
+        D_ts(i,j)=norm(data(sindex(j):sindex(j)+subLen-1)-shapelet{j});       
     end
 end
 
@@ -195,7 +171,7 @@ TRAIN_class_labels=TRAIN(:,1);
 TEST_class_labels=TEST(:,1);
 %% svm classifier
 
-SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 1 -c 100');
+SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 1 -c 500');
  [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
  acc = accu(1);
 

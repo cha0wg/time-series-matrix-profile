@@ -1,10 +1,10 @@
-TRAIN = load('UEA_data/Coffee/Coffee_TRAIN'); 
-TEST= load('UEA_data/Coffee/Coffee_TEST');
-
+%% sort TRAIN and TEST by class
 TRAIN=sortrows(TRAIN,1);
 TEST=sortrows(TEST,1);
 
-%% set class from 0
+
+
+%%set class from 0
 if TRAIN(1,1)==1
     for i=1:size(TRAIN,1)
         TRAIN(i,1)=TRAIN(i,1)-1;
@@ -16,10 +16,8 @@ if TEST(1,1)==1
         TEST(i,1)=TEST(i,1)-1;
     end
 end
+%
 
-%%
-subLen=10;
-threshold=2;
 
 numcls=unique(TRAIN(:,1));
 len=length(numcls);
@@ -29,7 +27,7 @@ for i=1:len
     B{i}=TRAIN(index,:);
 end
 
-%% init diffMatrix
+%%init diffMatrix
 
 numRow=0;
 for i=1:len-1
@@ -41,8 +39,15 @@ end
 datalen=size(B{1},2)-1;
 diffMatrix=zeros(numRow,datalen - subLen + 3);
 
-
+ rr=[];
 %%
+% subLen=25;
+% threshold=1;
+%  diffMatrix=zeros(numRow,datalen - subLen + 3);   (size(TRAIN,2)-1)/2-1
+for mm_subLen=8:10
+    for mm_threshold=0.4:0.1:0.6
+diffMatrix=zeros(numRow,datalen - mm_subLen + 3);
+
 tic
 
 % index=1;
@@ -66,11 +71,11 @@ tic
 for i=1:len-1  % find group  
     for firstIndex=1:size(B{i},1) %data len in 1 group
          data=B{i}(firstIndex,2:size(B{i},2));
-         [matrixProfileSelf] = V_interactiveMatrixProfile(data,data, subLen);
+         [matrixProfileSelf] = V_interactiveMatrixProfile(data,data, mm_subLen);
          for j=i+1:len  % find second group
             for secondIndex=1:size(B{j},1)  %data len in 2 group
                  data1=B{j}(secondIndex,2:size(B{j},2));
-                 [matrixProfile] = V_interactiveMatrixProfile(data,data1, subLen);
+                 [matrixProfile] = V_interactiveMatrixProfile(data,data1, mm_subLen);
                  posDiffMatrixProfile=abs(matrixProfile-matrixProfileSelf);
                  tempProfile=[B{i}(firstIndex,1) firstIndex];
                  diffMatrix(index,:)=[tempProfile posDiffMatrixProfile.'];
@@ -82,7 +87,7 @@ end
 
 toc
 %% generate shapelet
-% threshold=0.5;
+%  threshold=0.6;
 %[m,n]=find(sss>threshold);
 
 index_Class_Instance=cell(len-1,1);
@@ -109,11 +114,13 @@ for i=1:size(index_Class_Instance,1)
          insnum=size(cim,1);
          cim=sum(cim);
          cim=cim/insnum;
-         m=find(cim>threshold);
+         m=find(cim>mm_threshold);
          index_Class_Instance{i}{j}=m;
     end
 end
 
+
+%
 slen=0;
 for i=1:size(index_Class_Instance,1)
     for j=1:size(index_Class_Instance{i},1)
@@ -131,7 +138,7 @@ for i=1:size(index_Class_Instance,1)
     tins=tins(:,2:size(tins,2));
     for j=1:size(index_Class_Instance{i},1)      
         for x=1:length(index_Class_Instance{i}{j})
-            shapelet{index}=tins(j,index_Class_Instance{i}{j}(x):index_Class_Instance{i}{j}(x)+subLen-1);
+            shapelet{index}=tins(j,index_Class_Instance{i}{j}(x):index_Class_Instance{i}{j}(x)+mm_subLen-1);
             sindex(index)=index_Class_Instance{i}{j}(x);
             index=index+1;
         end
@@ -151,70 +158,37 @@ D_ts=zeros(size(TEST,1),slen);
 for i=1:size(TRAIN,1)
     data=TRAIN(i,2:size(TRAIN,2));  
     for j=1:slen
-        D_tr(i,j)=norm(data(sindex(j):sindex(j)+subLen-1)-shapelet{j});       
+        D_tr(i,j)=norm(data(sindex(j):sindex(j)+mm_subLen-1)-shapelet{j});       
     end
 end
 
 for i=1:size(TEST,1)
     data=TEST(i,2:size(TEST,2));  
     for j=1:slen
-        D_ts(i,j)=norm(data(sindex(j):sindex(j)+subLen-1)-shapelet{j});       
+        D_ts(i,j)=norm(data(sindex(j):sindex(j)+mm_subLen-1)-shapelet{j});       
     end
 end
 
 TRAIN_class_labels=TRAIN(:,1);
 TEST_class_labels=TEST(:,1);
-%% svm classifier
+%%svm classifier
 
-SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 0 -c 100');
+SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 0 -c 500');
  [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
  acc = accu(1);
+ 
+ SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 1 -c 500');
+ [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
+ acc1 = accu(1);
+ 
+ SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 2 -c 500');
+ [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
+ acc2 = accu(1);
+ 
+ SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 3 -c 500');
+ [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
+ acc3 = accu(1);
 
-%% plot test
-plotDiffMatrix(cim);
-
-%% 
-subLen=25;
-tic
-data1=TRAIN(3,2:size(TRAIN,2));
-data15=TRAIN(242,2:size(TRAIN,2)); 
-
-
-[matrixProfile] = V_interactiveMatrixProfile(data1,data15, subLen);
-
-
-[matrixProfileSelf] =  V_interactiveMatrixProfile(data1,data1, subLen);
-toc
-
-%%
-%plot minus information 
-
-diffMatrixProfile=matrixProfile-matrixProfileSelf;
-posDiffMatrixProfile=abs(diffMatrixProfile);
-dataLen = length(data1);
-profileLen = dataLen - subLen + 1;
-
-figure
-subplot(4,1,1)
-hold on
-plot(1:dataLen, data1, 'r');
-plot(1:dataLen, data15, 'b');
-
-subplot(4,1,2)
-hold on
-plot(1:profileLen, matrixProfile, 'r');
-plot(1:profileLen, matrixProfileSelf, 'b');
-
-subplot(4,1,3)
-plot(1:profileLen, diffMatrixProfile, 'b');
-
-subplot(4,1,4)
-plot(1:profileLen, posDiffMatrixProfile, 'b');
-%% plot train
-figure
-hold on
-
-l = length(TRAIN(1,2:size(TRAIN,2)));
-plot(1:l, TRAIN(1,2:l+1), 'r');
-plot(1:l, TRAIN(152,2:l+1), 'm');
-plot(1:l, TRAIN(245,2:l+1), 'b');
+ rr=[rr;[mm_subLen mm_threshold acc acc1 acc2 acc3]];
+    end
+end
