@@ -27,6 +27,12 @@ function [matrixProfile] = ...
     V_interactiveMatrixProfile(data,data1, subLen)
 %% set trivial match exclusion zone
 exclusionZone = round(subLen/2);
+
+% equ=(data==data1);
+% if(sum(equ)~=length(data))
+%     exclusionZone=0;
+% end
+
 % exclusionZone = round(subLen/4);
 % radius = 2;
 

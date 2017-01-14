@@ -2,8 +2,6 @@
 TRAIN=sortrows(TRAIN,1);
 TEST=sortrows(TEST,1);
 
-subLen=5;
-threshold=0.5;
 
 %%set class from 0
 if TRAIN(1,1)==1
@@ -17,7 +15,46 @@ if TEST(1,1)==1
         TEST(i,1)=TEST(i,1)-1;
     end
 end
-%
+%% reshape train body
+TRAIN1=TRAIN;
+
+mthres=9;
+
+tic
+mlen=size(TRAIN,2);
+numcls=unique(TRAIN(:,1));
+len=length(numcls);
+
+
+newtrain=[];
+
+for i=0:len-1
+    fclass=TRAIN(:,1)==i;
+    finstance = TRAIN(fclass,:);
+    mnum=size(finstance,1);
+    mpos=1:1:mnum;
+    while(length(mpos)>1)
+        x=finstance(mpos(1),2:mlen);
+        dist=[];
+        for j=1:length(mpos)
+            dist=[dist norm(x-finstance(mpos(j),2:mlen))];
+        end
+        locate=find(dist<=mthres);
+        mpos(locate)=[];
+        newtrain=[newtrain;[i x]];
+    end
+    if(length(mpos)>0)
+      newtrain=[newtrain;finstance(mpos(1),1:mlen)];
+    end
+end
+
+TRAIN=newtrain;
+
+toc
+%%
+subLen=13;
+threshold=0.4;
+
 numcls=unique(TRAIN(:,1));
 len=length(numcls);
 B=cell(len,1);
@@ -79,7 +116,6 @@ end
 
 toc
 %% pre-generate shapelet
-  threshold=0.2;
 %[m,n]=find(sss>threshold);
 
 index_Class_Instance=cell(len-1,1);
@@ -173,7 +209,8 @@ end
 %         index_Class_Instance{i}{j}=unique(index_Class_Instance{i}{j});
 %     end
 % end
-%%use z-normalized euclidean distance to transform the data
+%% use z-normalized euclidean distance to transform the data
+TRAIN=TRAIN1;
 D_tr=zeros(size(TRAIN,1),slen);
 D_ts=zeros(size(TEST,1),slen);
 

@@ -1,7 +1,4 @@
 %% sort TRAIN and TEST by class
-subLen=10;
-threshold=0.6;
-
 TRAIN=sortrows(TRAIN,1);
 TEST=sortrows(TEST,1);
 
@@ -19,8 +16,48 @@ if TEST(1,1)==1
         TEST(i,1)=TEST(i,1)-1;
     end
 end
-%
 
+
+%% reshape train body
+TRAIN1=TRAIN;
+
+mthres=4.8;
+
+tic
+mlen=size(TRAIN,2);
+numcls=unique(TRAIN(:,1));
+len=length(numcls);
+
+
+newtrain=[];
+
+for i=0:len-1
+    fclass=TRAIN(:,1)==i;
+    finstance = TRAIN(fclass,:);
+    mnum=size(finstance,1);
+    mpos=1:1:mnum;
+    while(length(mpos)>1)
+        x=finstance(mpos(1),2:mlen);
+        dist=[];
+        for j=1:length(mpos)
+            dist=[dist norm(x-finstance(mpos(j),2:mlen))];
+        end
+        locate=find(dist<=mthres);
+        mpos(locate)=[];
+        newtrain=[newtrain;[i x]];
+    end
+    if(length(mpos)>0)
+      newtrain=[newtrain;finstance(mpos(1),1:mlen)];
+    end
+end
+
+TRAIN=newtrain;
+
+toc
+
+%%
+subLen=20;
+threshold=0.5;
 
 numcls=unique(TRAIN(:,1));
 len=length(numcls);
@@ -43,9 +80,6 @@ datalen=size(B{1},2)-1;
 diffMatrix=zeros(numRow,datalen - subLen + 3);
 
 %%
-
-
-
 tic
 
 % index=1;
@@ -149,7 +183,9 @@ end
 %         index_Class_Instance{i}{j}=unique(index_Class_Instance{i}{j});
 %     end
 % end
-%%use z-normalized euclidean distance to transform the data
+%% use z-normalized euclidean distance to transform the data
+
+TRAIN=TRAIN1;
 D_tr=zeros(size(TRAIN,1),slen);
 D_ts=zeros(size(TEST,1),slen);
 
@@ -171,7 +207,7 @@ TRAIN_class_labels=TRAIN(:,1);
 TEST_class_labels=TEST(:,1);
 %% svm classifier
 
-SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 1 -c 500');
+SVMStruct = svmtrain(TRAIN_class_labels,D_tr,'-t 2 -c 100');
  [~,accu,~] = svmpredict(TEST_class_labels,D_ts,SVMStruct);
  acc = accu(1);
 
